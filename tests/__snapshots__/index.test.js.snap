@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should create valid json profile 1`] = `
+Array [
+  "nodes",
+  "startTime",
+  "endTime",
+  "samples",
+  "timeDeltas",
+]
+`;
