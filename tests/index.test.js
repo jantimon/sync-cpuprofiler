@@ -5,12 +5,18 @@ const fs = require("fs");
 process.chdir(__dirname);
 
 function runFixture(filename) {
-	const subProcess = spawn("node", [path.join(__dirname, "fixtures", filename)], {
-		stdio: ["pipe", "pipe", "inherit"]
-	});
+	const subProcess = spawn(
+		"node",
+		[path.join(__dirname, "fixtures", filename)],
+		{
+			stdio: ["pipe", "pipe", "inherit"]
+		}
+	);
 	const endPromise = new Promise((resolve, reject) => {
 		subProcess.on("err", reject);
-		subProcess.on("close", exitCode => Number(exitCode) !== 0 ? reject(exitCode) : resolve(exitCode));
+		subProcess.on("close", exitCode =>
+			Number(exitCode) !== 0 ? reject(exitCode) : resolve(exitCode)
+		);
 	});
 	return {
 		endPromise,
@@ -36,15 +42,19 @@ afterAll(removeProfiles);
 
 test("should create profile after program finished", async () => {
 	expect(getFiles("profiles").length).toBe(0);
-	await runFixture("default.js").endPromise
+	await runFixture("default.js").endPromise;
 	expect(getFiles("profiles").length).toBe(1);
 });
 
 test("should create valid json profile", async () => {
 	expect(getFiles("profiles").length).toBe(0);
-	await runFixture("default.js").endPromise
-	const profile = path.resolve(__dirname, 'profiles', getFiles("profiles")[0]);
-	const profileContent = JSON.parse(fs.readFileSync(profile, 'utf-8'));
+	await runFixture("default.js").endPromise;
+	const profile = path.resolve(
+		__dirname,
+		"profiles",
+		getFiles("profiles")[0]
+	);
+	const profileContent = JSON.parse(fs.readFileSync(profile, "utf-8"));
 	expect(Object.keys(profileContent)).toMatchSnapshot();
 });
 

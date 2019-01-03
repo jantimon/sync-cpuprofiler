@@ -13,38 +13,49 @@ module.exports = function syncProfiling(
 		"profile-" + new Date().getTime() + ".cpuprofile"
 	),
 	autoCleanup = true,
-	writeFileSync = fs.writeFileSync,
+	writeFileSync = fs.writeFileSync
 ) {
 	let profilerStarted = false;
-	session.connect();
-	session.post("Profiler.enable", () => {
-		session.post("Profiler.start", () => {
-			profilerStarted = true;
-		});
-	});
-	let finishProfilePromise;
-	async function finishProfiling() {
-		if (finishProfilePromise) {
-			return finishProfilePromise;
-		}
-		finishProfilePromise = new Promise((resolve, reject) => {
-			session.post("Profiler.stop", (profileCloseError, { profile }) => {
-				session.disconnect();
-				if (profileCloseError) {
-					return reject(profileCloseError);
-				}
-				mkdirp(path.dirname(profilePath));
-				writeFileSync(profilePath, JSON.stringify(profile), {
-					encoding: "utf-8"
-				});
-				resolve();
+	let finishProfiling;
+	const profilePromise = new Promise((outerResolve, outerReject) => {
+		// Start profiling
+		session.connect();
+		session.post("Profiler.enable", () => {
+			session.post("Profiler.start", () => {
+				profilerStarted = true;
 			});
 		});
-		return finishProfilePromise;
-	}
+		let finishProfilePromise;
+		// Stop profiling
+		finishProfiling = async function finishProfiling() {
+			if (finishProfilePromise) {
+				return finishProfilePromise;
+			}
+			finishProfilePromise = new Promise((resolve, reject) => {
+				session.post(
+					"Profiler.stop",
+					(profileCloseError, { profile }) => {
+						session.disconnect();
+						if (profileCloseError) {
+							reject(profileCloseError);
+							outerReject(profileCloseError);
+							return;
+						}
+						mkdirp(path.dirname(profilePath));
+						writeFileSync(profilePath, JSON.stringify(profile), {
+							encoding: "utf-8"
+						});
+						resolve(profilePath);
+						outerResolve(profilePath);
+					}
+				);
+			});
+			return finishProfilePromise;
+		};
+	});
+
 	// Wait until the process
 	// exits to write the profile
-
 	if (autoCleanup !== false) {
 		process.on("exit", async () => {
 			try {
@@ -64,13 +75,15 @@ module.exports = function syncProfiling(
 			process.exit(99);
 		});
 	}
+
 	// Blook loop until profile is started
 	while (!profilerStarted) {
 		runLoopOnce();
 	}
 
 	return {
-		finishProfiling
+		finishProfiling,
+		profilePromise
 	};
 };
 
