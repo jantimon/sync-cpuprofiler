@@ -7,52 +7,53 @@ const path = require("path");
 /**
  * Create a new profile once the process is done
  */
-module.exports = function syncProfiling(
-	profilePath = path.resolve(
-		"profiles",
-		"profile-" + new Date().getTime() + ".cpuprofile"
-	),
-	autoCleanup = true,
-	writeFileSync = fs.writeFileSync
-) {
+module.exports = function syncProfiling(profilePath, options = {}) {
+	// Defaults
+	const { autoCleanup, writeFileSync, onProfileDone } = Object.assign(
+		{
+			autoCleanup: true,
+			writeFileSync: fs.writeFileSync,
+			onProfileDone: () => {}
+		},
+		options
+	);
+	if (profilePath === undefined) {
+		profilePath = path.resolve(
+			"profiles",
+			"profile-" + new Date().getTime() + ".cpuprofile"
+		);
+	}
+
 	let profilerStarted = false;
-	let finishProfiling;
-	const profilePromise = new Promise((outerResolve, outerReject) => {
-		// Start profiling
-		session.connect();
-		session.post("Profiler.enable", () => {
-			session.post("Profiler.start", () => {
-				profilerStarted = true;
+	// Start profiling
+	session.connect();
+	session.post("Profiler.enable", () => {
+		session.post("Profiler.start", () => {
+			profilerStarted = true;
+		});
+	});
+	let finishProfilePromise;
+	// Stop profiling
+	async function finishProfiling() {
+		if (finishProfilePromise) {
+			return finishProfilePromise;
+		}
+		finishProfilePromise = new Promise((resolve, reject) => {
+			session.post("Profiler.stop", (profileCloseError, { profile }) => {
+				session.disconnect();
+				if (profileCloseError) {
+					return reject(profileCloseError);
+				}
+				mkdirp(path.dirname(profilePath));
+				writeFileSync(profilePath, JSON.stringify(profile), {
+					encoding: "utf-8"
+				});
+				onProfileDone(profilePath);
+				resolve(profilePath);
 			});
 		});
-		let finishProfilePromise;
-		// Stop profiling
-		finishProfiling = async function finishProfiling() {
-			if (finishProfilePromise) {
-				return finishProfilePromise;
-			}
-			finishProfilePromise = new Promise((resolve, reject) => {
-				session.post(
-					"Profiler.stop",
-					(profileCloseError, { profile }) => {
-						session.disconnect();
-						if (profileCloseError) {
-							reject(profileCloseError);
-							outerReject(profileCloseError);
-							return;
-						}
-						mkdirp(path.dirname(profilePath));
-						writeFileSync(profilePath, JSON.stringify(profile), {
-							encoding: "utf-8"
-						});
-						resolve(profilePath);
-						outerResolve(profilePath);
-					}
-				);
-			});
-			return finishProfilePromise;
-		};
-	});
+		return finishProfilePromise;
+	}
 
 	// Wait until the process
 	// exits to write the profile
@@ -82,8 +83,7 @@ module.exports = function syncProfiling(
 	}
 
 	return {
-		finishProfiling,
-		profilePromise
+		finishProfiling
 	};
 };
 
