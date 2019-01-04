@@ -1,6 +1,6 @@
 {
   "license": "MIT",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "name": "sync-cpuprofiler",
   "repository": "https://github.com/jantimon/sync-cpuprofiler",
   "description": "Create a new cpuprofile for the currend node process",
