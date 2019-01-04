@@ -1,9 +1,7 @@
-const { profilePromise } = require("../../src/index")();
+require("../../src/index")(undefined, {
+	onProfileDone: profileName => console.log(profileName)
+});
 
 setTimeout(() => {
 	console.log("done");
 }, 500);
-
-profilePromise.then(profileName => {
-	console.log(profileName);
-});

@@ -13,6 +13,7 @@ function runFixture(filename) {
 		}
 	);
 	const endPromise = new Promise((resolve, reject) => {
+		subProcess.stdout.pipe(process.stdout);
 		subProcess.on("err", reject);
 		subProcess.on("close", exitCode =>
 			Number(exitCode) !== 0 ? reject(exitCode) : resolve(exitCode)
@@ -60,7 +61,7 @@ test("should create valid json profile", async () => {
 
 test("should create profile after program was ended", async () => {
 	expect(getFiles("profiles").length).toBe(0);
-	const child = runFixture("default.js");
+	const child = runFixture("endless.js");
 	setTimeout(() => child.subProcess.stdin.end(), 500);
 	await child.endPromise;
 	expect(getFiles("profiles").length).toBe(1);
