@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.1.2"></a>
+## [1.1.2](https://github.com/jantimon/sync-cpuprofiler/compare/v1.1.1...v1.1.2) (2019-01-10)
+
+
+### Bug Fixes
+
+* Read stdin to listen for end command ([e5e1a1d](https://github.com/jantimon/sync-cpuprofiler/commit/e5e1a1d))
+* Require node 8.x ([2e2a113](https://github.com/jantimon/sync-cpuprofiler/commit/2e2a113))
+
+
+
 <a name="1.1.1"></a>
 ## [1.1.1](https://github.com/jantimon/sync-cpuprofiler/compare/v1.1.0...v1.1.1) (2019-01-04)
 
