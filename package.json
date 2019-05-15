@@ -6,15 +6,15 @@
   "description": "Create a new cpuprofile for the currend node process",
   "author": "Jan Nicklas",
   "dependencies": {
-    "deasync": "0.1.14",
-    "jest": "23.6.0"
+    "deasync": "0.1.14"
   },
   "devDependencies": {
     "commitizen": "3.0.5",
     "cz-conventional-changelog": "2.1.0",
     "prettier": "1.15.3",
     "rimraf": "2.6.3",
-    "standard-version": "4.4.0"
+    "standard-version": "4.4.0",
+    "jest": "23.6.0"
   },
   "main": "src/index.js",
   "files": [
